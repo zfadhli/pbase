@@ -1,0 +1,29 @@
+{
+  "name": "__NAME__",
+  "version": "0.0.0",
+  "description": "__DESC__",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.mts"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "test": "bun test",
+    "test:watch": "bun test --watch"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1",
+    "tsdown": "^0.22",
+    "typescript": "^6"
+  }
+}
