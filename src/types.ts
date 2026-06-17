@@ -6,6 +6,7 @@ export interface ScaffoldOptions {
   force?: boolean;
   noInstall?: boolean;
   noGit?: boolean;
+  template?: string;
 }
 
 export interface ScaffoldResult {

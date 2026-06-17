@@ -1,6 +1,10 @@
-import { execSync } from "node:child_process";
+import { exec } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { stderr } from "node:process";
+import { promisify } from "node:util";
+
+const execAsync = promisify(exec);
 
 export interface PackageMeta {
   name: string;
@@ -8,6 +12,24 @@ export interface PackageMeta {
   author?: string;
   noInstall?: boolean;
   noGit?: boolean;
+}
+
+async function withSpinner<T>(message: string, fn: () => Promise<T>): Promise<T> {
+  const frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+  let i = 0;
+  const timer = setInterval(() => {
+    stderr.write(`\r  ${frames[i++ % frames.length]} ${message}`);
+  }, 80);
+  try {
+    const result = await fn();
+    stderr.write(`\r  ✓ ${message}\n`);
+    return result;
+  } catch (e) {
+    stderr.write(`\r  ✗ ${message}\n`);
+    throw e;
+  } finally {
+    clearInterval(timer);
+  }
 }
 
 export async function usePackage(targetDir: string, meta: PackageMeta): Promise<void> {
@@ -20,18 +42,19 @@ export async function usePackage(targetDir: string, meta: PackageMeta): Promise<
 
   // Install dependencies
   if (!meta.noInstall) {
-    console.log("  Installing dependencies...");
-    execSync("bun install", { cwd: targetDir, stdio: "inherit" });
+    await withSpinner("Installing dependencies", async () => {
+      await execAsync("bun install", { cwd: targetDir });
+    });
   }
 
   // Initialize git
   if (!meta.noGit) {
-    console.log("  Initializing git...");
-    execSync("git init", { cwd: targetDir, stdio: "inherit" });
+    await withSpinner("Initializing git", async () => {
+      await execAsync("git init -b main", { cwd: targetDir });
+    });
     try {
-      execSync('git add -A && git commit -m "initial commit"', {
+      await execAsync('git add -A && git commit -m "initial commit"', {
         cwd: targetDir,
-        stdio: "inherit",
       });
     } catch {
       // git commit may fail without user config — non-fatal

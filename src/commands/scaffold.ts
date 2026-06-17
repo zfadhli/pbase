@@ -4,29 +4,36 @@ import { usePackage } from "../composables/usePackage";
 import { useScaffold } from "../composables/useScaffold";
 import { DirectoryExistsError } from "../errors";
 import type { ScaffoldOptions, ScaffoldResult } from "../types";
-import { prompt } from "../utils/prompts";
+import { confirmOverwrite, promptProjectName, promptTemplate } from "../utils/prompts";
 
 export async function scaffold(options: ScaffoldOptions): Promise<ScaffoldResult> {
   // 1. Resolve project name
-  let { projectName } = options;
+  let { projectName, template } = options;
   if (!projectName) {
-    projectName = await prompt("Project name:");
-    if (!projectName) throw new Error("Project name is required");
+    projectName = await promptProjectName();
     options.projectName = projectName;
   }
 
-  // 2. Resolve output directory
-  const outDir = options.outDir ?? resolve(process.cwd(), projectName);
-
-  // 3. Check for existing directory
-  if (existsSync(outDir) && !options.force) {
-    throw new DirectoryExistsError(outDir);
+  // 2. Resolve template
+  if (!template) {
+    template = await promptTemplate();
+    options.template = template;
   }
 
-  // 4. Scaffold: copy template + render placeholders
+  // 3. Resolve output directory
+  const outDir = options.outDir ?? resolve(process.cwd(), projectName);
+
+  // 4. Check for existing directory — prompt to overwrite
+  if (existsSync(outDir) && !options.force) {
+    const ok = await confirmOverwrite(outDir);
+    if (!ok) throw new DirectoryExistsError(outDir);
+    options.force = true;
+  }
+
+  // 5. Scaffold: copy template + render placeholders
   const result = await useScaffold(options, outDir);
 
-  // 5. Post-process: install deps, init git
+  // 6. Post-process: install deps, init git
   await usePackage(outDir, {
     name: projectName,
     description: options.description,

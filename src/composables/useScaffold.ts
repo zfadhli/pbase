@@ -6,7 +6,7 @@ export async function useScaffold(
   options: ScaffoldOptions,
   outDir: string,
 ): Promise<ScaffoldResult> {
-  const templateDir = resolveTemplateDir();
+  const templateDir = resolveTemplateDir(options.template ?? "lib");
 
   await cp(templateDir, outDir, {
     recursive: true,

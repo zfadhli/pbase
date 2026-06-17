@@ -21,13 +21,17 @@
     "test:watch": "bun test --watch"
   },
   "dependencies": {
-    "cac": "^6"
+    "@inquirer/prompts": "^8",
+    "cac": "^7"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1",
+    "@biomejs/biome": "^2",
     "@types/bun": "latest",
     "tsdown": "^0.22",
     "typescript": "^6"
   },
-  "files": ["dist", "template"]
+  "files": [
+    "dist",
+    "templates"
+  ]
 }

@@ -1,31 +1,59 @@
 import { existsSync } from "node:fs";
-import { readFile, readdir, writeFile } from "node:fs/promises";
-import { dirname, join, resolve } from "node:path";
+import { readdir, readFile, writeFile } from "node:fs/promises";
+import { dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { TemplateNotFoundError } from "../errors";
 import type { ScaffoldOptions } from "../types";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-export function resolveTemplateDir(): string {
-  // When bundled: dist/index.mjs → ../template
-  // When in source: src/utils/ → ../../template
-  const candidates = [resolve(__dirname, "../template"), resolve(__dirname, "../../template")];
+export const TEMPLATES: Record<string, string> = {
+  lib: "TypeScript library (tsdown + Biome + Lefthook)",
+  pkg: "Minimal package (TypeScript + Bun only)",
+};
+
+export function resolveTemplateDir(template: string): string {
+  // When bundled: dist/index.mjs → ../templates/<name>
+  // When in source: src/utils/ → ../../templates/<name>
+  const candidates = [
+    resolve(__dirname, `../templates/${template}`),
+    resolve(__dirname, `../../templates/${template}`),
+  ];
 
   for (const dir of candidates) {
     if (existsSync(dir)) return dir;
   }
 
-  throw new TemplateNotFoundError(candidates[1]);
+  throw new TemplateNotFoundError(template);
 }
+
+const BINARY_EXTS = new Set([
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".ico",
+  ".svg",
+  ".woff",
+  ".woff2",
+  ".ttf",
+  ".eot",
+  ".otf",
+  ".zip",
+  ".tar",
+  ".gz",
+  ".br",
+]);
 
 export async function renderPlaceholders(dir: string, options: ScaffoldOptions): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true });
   const files: string[] = [];
+  const year = new Date().getFullYear().toString();
   const replacements: Record<string, string> = {
     __NAME__: options.projectName,
     __DESC__: options.description ?? "",
     __AUTHOR__: options.author ?? "",
+    __YEAR__: year,
   };
 
   for (const entry of entries) {
@@ -35,6 +63,7 @@ export async function renderPlaceholders(dir: string, options: ScaffoldOptions):
       if (entry.name === "node_modules") continue;
       files.push(...(await renderPlaceholders(fullPath, options)));
     } else if (entry.isFile()) {
+      if (BINARY_EXTS.has(extname(entry.name))) continue;
       const content = await readFile(fullPath, "utf-8");
       let updated = content;
       for (const [key, value] of Object.entries(replacements)) {
