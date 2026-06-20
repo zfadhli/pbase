@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { cp, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { stderr } from "node:process";
-import { directoryExistsError } from "../errors";
+import { directoryExistsError, invalidProjectNameError, validateProjectName } from "../errors";
 import type { ScaffoldOptions } from "../types";
 import {
   getPlaceholders,
@@ -68,6 +68,9 @@ export async function scaffold(options: ScaffoldOptions): Promise<void> {
     projectName = await promptProjectName();
     options.projectName = projectName;
   }
+
+  const err = validateProjectName(projectName);
+  if (err) throw invalidProjectNameError(projectName, err);
 
   if (!template) {
     template = await promptTemplate();

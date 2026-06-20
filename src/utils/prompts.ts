@@ -1,10 +1,11 @@
 import { confirm, input, select } from "@inquirer/prompts";
+import { validateProjectName } from "../errors";
 import { TEMPLATES } from "./fs";
 
 export async function promptProjectName(): Promise<string> {
   return await input({
     message: "Project name:",
-    validate: (v: string) => (v ? true : "Project name is required"),
+    validate: (v: string) => validateProjectName(v) ?? true,
   });
 }
 
