@@ -6,24 +6,24 @@ __DESC__
 
 | Tool | Role |
 |---|---|
-| [Bun](https://bun.sh) | Runtime, package manager, test runner |
+| [Node](https://nodejs.org) | Runtime |
 | [TypeScript](https://www.typescriptlang.org) | Type system (strict, `isolatedDeclarations`) |
 | [Biome](https://biomejs.dev) | Linter + formatter |
-| [tsdown](https://tsdown.dev) | Library bundler (Rolldown-based, ESM + CJS + dts) |
+| [tsdown](https://tsdown.dev) | Library bundler (Rolldown-based, ESM + dts) |
 | [Lefthook](https://lefthook.dev) | Git hooks manager |
 
 ## Scripts
 
 | Command | Description |
 |---|---|
-| `bun run build` | Build library |
-| `bun run dev` | Watch mode rebuild |
-| `bun run typecheck` | Type-check all files |
-| `bun run lint` | Check lint + formatting |
-| `bun run lint:fix` | Auto-fix lint + formatting |
-| `bun run format` | Format only |
-| `bun test` | Run tests |
-| `bun run test:watch` | Watch mode tests |
+| `nub run build` | Build library |
+| `nub run dev` | Watch mode rebuild |
+| `nub run typecheck` | Type-check all files |
+| `nub run lint` | Check lint + formatting |
+| `nub run lint:fix` | Auto-fix lint + formatting |
+| `nub run format` | Format only |
+| `nub run test` | Run tests |
+| `nub run test:watch` | Watch mode tests |
 
 ## Git hooks
 

@@ -7,27 +7,48 @@ import type { ScaffoldOptions } from "../types";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+export interface TemplateMeta {
+  extends?: string;
+}
+
 export const TEMPLATES: Record<string, string> = {
   lib: "TypeScript library (tsdown + Biome + Lefthook)",
   pkg: "Minimal package (TypeScript + vitest)",
 };
 
-export function resolveTemplateDir(template: string): string {
-  const err = validateTemplateName(template);
-  if (err) throw new PbaseError(`Invalid template name "${template}": ${err}`);
-
+function resolveTemplateDirPath(name: string): string {
   // When bundled: dist/index.mjs → ../templates/<name>
   // When in source: src/utils/ → ../../templates/<name>
   const candidates = [
-    resolve(__dirname, `../templates/${template}`),
-    resolve(__dirname, `../../templates/${template}`),
+    resolve(__dirname, `../templates/${name}`),
+    resolve(__dirname, `../../templates/${name}`),
   ];
 
   for (const dir of candidates) {
     if (existsSync(dir)) return dir;
   }
 
-  throw new PbaseError(`Template "${template}" not found.`);
+  throw new PbaseError(`Template "${name}" not found.`);
+}
+
+export function resolveTemplateDir(template: string): string {
+  const err = validateTemplateName(template);
+  if (err) throw new PbaseError(`Invalid template name "${template}": ${err}`);
+
+  return resolveTemplateDirPath(template);
+}
+
+export function resolveInternalTemplateDir(name: string): string {
+  return resolveTemplateDirPath(name);
+}
+
+export async function readTemplateMeta(templateDir: string): Promise<TemplateMeta> {
+  try {
+    const content = await readFile(join(templateDir, "template.json"), "utf-8");
+    return JSON.parse(content);
+  } catch {
+    return {};
+  }
 }
 
 const BINARY_EXTS = new Set([

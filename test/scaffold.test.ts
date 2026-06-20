@@ -32,6 +32,13 @@ describe("scaffold", () => {
     expect(existsSync(join(outDir, "tsdown.config.ts"))).toBe(true);
     expect(existsSync(join(outDir, "biome.json"))).toBe(true);
     expect(existsSync(join(outDir, "lefthook.yml"))).toBe(true);
+    expect(existsSync(join(outDir, "template.json"))).toBe(false);
+
+    // Verify deep-merge: exports from lib, build script from _base
+    const pkg = JSON.parse(readFileSync(join(outDir, "package.json"), "utf-8"));
+    expect(pkg.exports?.["."]?.import).toBe("./dist/index.mjs");
+    expect(pkg.scripts?.build).toBe("tsdown");
+    expect(pkg.scripts?.dev).toBe("tsdown --watch");
   });
 
   it("scaffolds a project from the pkg template", async () => {
@@ -50,9 +57,11 @@ describe("scaffold", () => {
     expect(existsSync(join(outDir, "package.json"))).toBe(true);
     expect(existsSync(join(outDir, "src/index.ts"))).toBe(true);
     expect(existsSync(join(outDir, "tsconfig.json"))).toBe(true);
-    expect(existsSync(join(outDir, "tsdown.config.ts"))).toBe(false);
-    expect(existsSync(join(outDir, "biome.json"))).toBe(false);
-    expect(existsSync(join(outDir, "lefthook.yml"))).toBe(false);
+    expect(existsSync(join(outDir, "tsdown.config.ts"))).toBe(true);
+    expect(existsSync(join(outDir, "biome.json"))).toBe(true);
+    expect(existsSync(join(outDir, "lefthook.yml"))).toBe(true);
+    expect(existsSync(join(outDir, ".editorconfig"))).toBe(true);
+    expect(existsSync(join(outDir, "template.json"))).toBe(false);
   });
 
   it("throws when overwriting without --force", async () => {

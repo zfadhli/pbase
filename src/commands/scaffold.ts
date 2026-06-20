@@ -1,12 +1,38 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
-import { cp, readFile, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { cp, readFile, rm, writeFile } from "node:fs/promises";
+import { join, resolve } from "node:path";
 import { stderr } from "node:process";
 import { PbaseError, validateProjectName } from "../errors";
 import type { ScaffoldOptions } from "../types";
-import { renderPlaceholders, resolveTemplateDir } from "../utils/fs";
+import {
+  readTemplateMeta,
+  renderPlaceholders,
+  resolveInternalTemplateDir,
+  resolveTemplateDir,
+} from "../utils/fs";
 import { confirmOverwrite, promptProjectName, promptTemplate } from "../utils/prompts";
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function deepMerge(
+  base: Record<string, unknown>,
+  child: Record<string, unknown>,
+): Record<string, unknown> {
+  const result: Record<string, unknown> = { ...base };
+  for (const key of Object.keys(child)) {
+    const baseVal = result[key];
+    const childVal = child[key];
+    if (isPlainObject(baseVal) && isPlainObject(childVal)) {
+      result[key] = deepMerge(baseVal, childVal);
+    } else {
+      result[key] = childVal;
+    }
+  }
+  return result;
+}
 
 function runProcess(cmd: string[], cwd: string): Promise<{ exitCode: number; stderr: string }> {
   return new Promise((resolve, reject) => {
@@ -22,8 +48,40 @@ function runProcess(cmd: string[], cwd: string): Promise<{ exitCode: number; std
 
 async function scaffoldTemplate(options: ScaffoldOptions, outDir: string): Promise<void> {
   const templateDir = resolveTemplateDir(options.template ?? "lib");
+
+  // Resolve and copy parent template first (if extends)
+  let basePkg: Record<string, unknown> | undefined;
+  const meta = await readTemplateMeta(templateDir);
+  if (meta.extends) {
+    const parentDir = resolveInternalTemplateDir(meta.extends);
+    basePkg = await readPkg(parentDir);
+    await cp(parentDir, outDir, { recursive: true, force: true });
+  }
+
+  // Read child's package.json before it overwrites parent's in output
+  const childPkg = await readPkg(templateDir);
+
+  // Copy this template (overrides parent files)
   await cp(templateDir, outDir, { recursive: true, force: options.force });
+
+  // Deep-merge package.json: child fields win, sub-objects are merged
+  if (basePkg && childPkg) {
+    const merged = deepMerge(basePkg, childPkg);
+    await writeFile(join(outDir, "package.json"), `${JSON.stringify(merged, null, 2)}\n`, "utf-8");
+  }
+
+  // Remove template.json from output (meta file, not user-facing)
+  await rm(join(outDir, "template.json"), { force: true });
+
   await renderPlaceholders(outDir, options);
+}
+
+async function readPkg(dir: string): Promise<Record<string, unknown> | undefined> {
+  try {
+    return JSON.parse(await readFile(join(dir, "package.json"), "utf-8"));
+  } catch {
+    return undefined;
+  }
 }
 
 async function runShell(message: string, cmd: string[], cwd: string): Promise<void> {
