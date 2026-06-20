@@ -16,6 +16,18 @@ export function templateNotFoundError(template: string): PbaseError {
   return new PbaseError(`Template "${template}" not found.`);
 }
 
+const TEMPLATE_RE = /^[a-z][a-z0-9_-]*$/i;
+
+export function validateTemplateName(name: string): string | null {
+  if (!name) return "Template name is required";
+  if (!TEMPLATE_RE.test(name)) return "Use only letters, numbers, hyphens, and underscores";
+  return null;
+}
+
+export function invalidTemplateNameError(name: string, reason: string): PbaseError {
+  return new PbaseError(`Invalid template name "${name}": ${reason}`);
+}
+
 const NAME_RE = /^[a-z0-9][a-z0-9-_.~]*$/;
 
 export function validateProjectName(name: string): string | null {

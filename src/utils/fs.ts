@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { templateNotFoundError } from "../errors";
+import { invalidTemplateNameError, templateNotFoundError, validateTemplateName } from "../errors";
 import type { ScaffoldOptions } from "../types";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -13,6 +13,9 @@ export const TEMPLATES: Record<string, string> = {
 };
 
 export function resolveTemplateDir(template: string): string {
+  const err = validateTemplateName(template);
+  if (err) throw invalidTemplateNameError(template, err);
+
   // When bundled: dist/index.mjs → ../templates/<name>
   // When in source: src/utils/ → ../../templates/<name>
   const candidates = [
