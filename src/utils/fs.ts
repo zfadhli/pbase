@@ -9,7 +9,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export const TEMPLATES: Record<string, string> = {
   lib: "TypeScript library (tsdown + Biome + Lefthook)",
-  pkg: "Minimal package (TypeScript + Bun only)",
+  pkg: "Minimal package (TypeScript + vitest)",
 };
 
 export function resolveTemplateDir(template: string): string {
