@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { invalidTemplateNameError, templateNotFoundError, validateTemplateName } from "../errors";
+import { PbaseError, validateTemplateName } from "../errors";
 import type { ScaffoldOptions } from "../types";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -14,7 +14,7 @@ export const TEMPLATES: Record<string, string> = {
 
 export function resolveTemplateDir(template: string): string {
   const err = validateTemplateName(template);
-  if (err) throw invalidTemplateNameError(template, err);
+  if (err) throw new PbaseError(`Invalid template name "${template}": ${err}`);
 
   // When bundled: dist/index.mjs → ../templates/<name>
   // When in source: src/utils/ → ../../templates/<name>
@@ -27,7 +27,7 @@ export function resolveTemplateDir(template: string): string {
     if (existsSync(dir)) return dir;
   }
 
-  throw templateNotFoundError(template);
+  throw new PbaseError(`Template "${template}" not found.`);
 }
 
 const BINARY_EXTS = new Set([
@@ -48,24 +48,7 @@ const BINARY_EXTS = new Set([
   ".br",
 ]);
 
-export async function listTemplateFiles(templateDir: string): Promise<string[]> {
-  const entries = await readdir(templateDir, { withFileTypes: true });
-  const files: string[] = [];
-
-  for (const entry of entries) {
-    const fullPath = join(templateDir, entry.name);
-    if (entry.isDirectory()) {
-      if (entry.name === "node_modules") continue;
-      const sub = await listTemplateFiles(fullPath);
-      files.push(...sub.map((f) => join(entry.name, f)));
-    } else if (entry.isFile() && !BINARY_EXTS.has(extname(entry.name))) {
-      files.push(entry.name);
-    }
-  }
-  return files.sort();
-}
-
-export function getPlaceholders(options: ScaffoldOptions): Record<string, string> {
+function getPlaceholders(options: ScaffoldOptions): Record<string, string> {
   return {
     __NAME__: options.projectName,
     __DESC__: options.description ?? "",

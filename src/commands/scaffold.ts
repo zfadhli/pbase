@@ -3,14 +3,9 @@ import { existsSync } from "node:fs";
 import { cp, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { stderr } from "node:process";
-import { directoryExistsError, invalidProjectNameError, validateProjectName } from "../errors";
+import { PbaseError, validateProjectName } from "../errors";
 import type { ScaffoldOptions } from "../types";
-import {
-  getPlaceholders,
-  listTemplateFiles,
-  renderPlaceholders,
-  resolveTemplateDir,
-} from "../utils/fs";
+import { renderPlaceholders, resolveTemplateDir } from "../utils/fs";
 import { confirmOverwrite, promptProjectName, promptTemplate } from "../utils/prompts";
 
 function runProcess(cmd: string[], cwd: string): Promise<{ exitCode: number; stderr: string }> {
@@ -70,7 +65,10 @@ export async function scaffold(options: ScaffoldOptions): Promise<void> {
   }
 
   const err = validateProjectName(projectName);
-  if (err) throw invalidProjectNameError(projectName, err);
+  if (err)
+    throw new PbaseError(
+      `Invalid project name "${projectName}": ${err}. Use a lowercase npm-compatible name (e.g. my-lib).`,
+    );
 
   if (!template) {
     template = await promptTemplate();
@@ -80,28 +78,17 @@ export async function scaffold(options: ScaffoldOptions): Promise<void> {
   const outDir = options.outDir ?? resolve(process.cwd(), projectName);
 
   if (options.dryRun) {
-    const templateDir = resolveTemplateDir(template);
-    const files = await listTemplateFiles(templateDir);
-    const placeholders = getPlaceholders(options);
-
     console.log(`\n  Project:  ${projectName}`);
     console.log(`  Template: ${template}`);
     console.log(`  Output:   ${outDir}`);
-    console.log(`\n  Files to create (${files.length}):`);
-    for (const f of files) {
-      console.log(`    ${f}`);
-    }
-    console.log(`\n  Placeholders:`);
-    for (const [key, value] of Object.entries(placeholders)) {
-      console.log(`    ${key} → ${value || "(empty)"}`);
-    }
     console.log(`\n  🟡 dry run — no files written\n`);
     return;
   }
 
   if (existsSync(outDir) && !options.force) {
     const ok = await confirmOverwrite(outDir);
-    if (!ok) throw directoryExistsError(outDir);
+    if (!ok)
+      throw new PbaseError(`Directory "${outDir}" already exists. Use --force to overwrite.`);
     options.force = true;
   }
 
