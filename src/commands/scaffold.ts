@@ -1,11 +1,24 @@
-import { cp, readFile, writeFile } from "node:fs/promises";
+import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
+import { cp, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { stderr } from "node:process";
 import { directoryExistsError } from "../errors";
 import type { ScaffoldOptions } from "../types";
-import { confirmOverwrite, promptProjectName, promptTemplate } from "../utils/prompts";
 import { renderPlaceholders, resolveTemplateDir } from "../utils/fs";
+import { confirmOverwrite, promptProjectName, promptTemplate } from "../utils/prompts";
+
+function runProcess(cmd: string[], cwd: string): Promise<{ exitCode: number; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    const proc = spawn(cmd[0], cmd.slice(1), { cwd, stdio: ["ignore", "pipe", "pipe"] });
+    const err: Buffer[] = [];
+    proc.stderr?.on("data", (d: Buffer) => err.push(d));
+    proc.on("close", (exitCode) =>
+      resolve({ exitCode: exitCode ?? 1, stderr: Buffer.concat(err).toString().trim() }),
+    );
+    proc.on("error", reject);
+  });
+}
 
 async function scaffoldTemplate(options: ScaffoldOptions, outDir: string): Promise<void> {
   const templateDir = resolveTemplateDir(options.template ?? "lib");
@@ -15,11 +28,9 @@ async function scaffoldTemplate(options: ScaffoldOptions, outDir: string): Promi
 
 async function runShell(message: string, cmd: string[], cwd: string): Promise<void> {
   stderr.write(`  ${message}...\n`);
-  const proc = Bun.spawn(cmd, { cwd, stdout: "pipe", stderr: "pipe" });
-  const result = await proc.exited;
-  if (result !== 0) {
-    const text = await new Response(proc.stderr).text();
-    throw new Error(`${message} failed: ${text.trim()}`);
+  const { exitCode, stderr: output } = await runProcess(cmd, cwd);
+  if (exitCode !== 0) {
+    throw new Error(`${message} failed: ${output}`);
   }
 }
 
@@ -31,16 +42,14 @@ async function setupPackage(targetDir: string, meta: ScaffoldOptions): Promise<v
   await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`, "utf-8");
 
   if (!meta.noInstall) {
-    await runShell("Installing dependencies", ["bun", "install"], targetDir);
+    await runShell("Installing dependencies", ["nub", "install"], targetDir);
   }
 
   if (!meta.noGit) {
     await runShell("Initializing git", ["git", "init", "-b", "main"], targetDir);
     try {
-      const proc = Bun.spawn(["git", "add", "-A"], { cwd: targetDir });
-      await proc.exited;
-      const commit = Bun.spawn(["git", "commit", "-m", "initial commit"], { cwd: targetDir });
-      await commit.exited;
+      await runProcess(["git", "add", "-A"], targetDir);
+      await runProcess(["git", "commit", "-m", "initial commit"], targetDir);
     } catch {
       // git commit may fail without user config — non-fatal
     }
@@ -73,5 +82,5 @@ export async function scaffold(options: ScaffoldOptions): Promise<void> {
 
   console.log(`\n  ✅ "${projectName}" scaffolded at ${outDir}\n`);
   console.log(`  $ cd ${projectName}`);
-  console.log("  $ bun run dev\n");
+  console.log("  $ nub run dev\n");
 }

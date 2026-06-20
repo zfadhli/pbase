@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 import { cac } from "cac";
 import { scaffold } from "./commands/scaffold";
 import { PbaseError } from "./errors";
@@ -12,7 +12,7 @@ cli
   .option("--desc <desc>", "Project description")
   .option("--author <author>", "Author name")
   .option("--force", "Overwrite existing directory")
-  .option("--no-install", "Skip bun install")
+  .option("--no-install", "Skip nub install")
   .option("--no-git", "Skip git init")
   .action(async (name?: string, options?: Record<string, unknown>) => {
     try {

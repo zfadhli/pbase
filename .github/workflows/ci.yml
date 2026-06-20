@@ -11,9 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install
-      - run: bun run typecheck
-      - run: bun run lint
-      - run: bun test
-      - run: bun run build
+      - uses: nubjs/setup-nub@v0
+      - run: nub install
+      - run: nub run typecheck
+      - run: nub run lint
+      - run: nub run test
+      - run: nub run build

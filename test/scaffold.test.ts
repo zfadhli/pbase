@@ -1,10 +1,10 @@
-import { describe, expect, it, mock } from "bun:test";
-import { existsSync, mkdtempSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { describe, expect, it, vi } from "vitest";
 
-// Mock prompts module so prompts don't hang waiting for stdin in non-TTY
-mock.module("../src/utils/prompts", () => ({
+vi.mock("../src/utils/prompts", () => ({
   confirmOverwrite: () => Promise.resolve(false),
   promptProjectName: () => Promise.resolve("test-lib"),
   promptTemplate: () => Promise.resolve("lib"),
@@ -29,7 +29,6 @@ describe("scaffold", () => {
     expect(existsSync(join(outDir, "package.json"))).toBe(true);
     expect(existsSync(join(outDir, "src/index.ts"))).toBe(true);
     expect(existsSync(join(outDir, "tsconfig.json"))).toBe(true);
-    // lib template should include tsdown + biome + lefthook
     expect(existsSync(join(outDir, "tsdown.config.ts"))).toBe(true);
     expect(existsSync(join(outDir, "biome.json"))).toBe(true);
     expect(existsSync(join(outDir, "lefthook.yml"))).toBe(true);
@@ -51,7 +50,6 @@ describe("scaffold", () => {
     expect(existsSync(join(outDir, "package.json"))).toBe(true);
     expect(existsSync(join(outDir, "src/index.ts"))).toBe(true);
     expect(existsSync(join(outDir, "tsconfig.json"))).toBe(true);
-    // pkg template should NOT include lib extras
     expect(existsSync(join(outDir, "tsdown.config.ts"))).toBe(false);
     expect(existsSync(join(outDir, "biome.json"))).toBe(false);
     expect(existsSync(join(outDir, "lefthook.yml"))).toBe(false);
@@ -61,7 +59,6 @@ describe("scaffold", () => {
     const tmpDir = mkdtempSync(join(tmpdir(), "pbase-test-"));
     const outDir = join(tmpDir, "existing");
 
-    // First scaffold succeeds with --force
     await scaffold({
       projectName: "existing",
       outDir,
@@ -71,7 +68,6 @@ describe("scaffold", () => {
       template: "lib",
     });
 
-    // Second scaffold without --force — mock returns false → throws
     expect(existsSync(outDir)).toBe(true);
     await expect(
       scaffold({
@@ -98,7 +94,7 @@ describe("scaffold", () => {
       template: "lib",
     });
 
-    const pkg = await Bun.file(join(outDir, "package.json")).json();
+    const pkg = JSON.parse(readFileSync(join(outDir, "package.json"), "utf-8"));
     expect(pkg.name).toBe("my-pkg");
     expect(pkg.description).toBe("A test package");
   });
@@ -117,7 +113,7 @@ describe("scaffold", () => {
       template: "lib",
     });
 
-    const license = await Bun.file(join(outDir, "LICENSE")).text();
+    const license = await readFile(join(outDir, "LICENSE"), "utf-8");
     const currentYear = new Date().getFullYear().toString();
     expect(license).toContain("Test Author");
     expect(license).toContain(currentYear);

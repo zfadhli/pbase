@@ -6,9 +6,10 @@
   "private": true,
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "bun test"
+    "test": "vitest run"
   },
   "devDependencies": {
-    "typescript": "^6"
+    "typescript": "^6",
+    "vitest": "^3"
   }
 }
