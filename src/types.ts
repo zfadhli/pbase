@@ -8,9 +8,3 @@ export interface ScaffoldOptions {
   noGit?: boolean;
   template?: string;
 }
-
-export interface ScaffoldResult {
-  outDir: string;
-  projectName: string;
-  filesCreated: number;
-}

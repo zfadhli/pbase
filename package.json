@@ -7,9 +7,6 @@
   "bin": {
     "pbase": "./dist/index.mjs"
   },
-  "exports": {
-    ".": "./dist/index.mjs"
-  },
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",

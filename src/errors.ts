@@ -8,14 +8,10 @@ export class PbaseError extends Error {
   }
 }
 
-export class DirectoryExistsError extends PbaseError {
-  constructor(dir: string) {
-    super(`Directory "${dir}" already exists. Use --force to overwrite.`);
-  }
+export function directoryExistsError(dir: string): PbaseError {
+  return new PbaseError(`Directory "${dir}" already exists. Use --force to overwrite.`);
 }
 
-export class TemplateNotFoundError extends PbaseError {
-  constructor(dir: string) {
-    super(`Template directory not found at "${dir}"`);
-  }
+export function templateNotFoundError(template: string): PbaseError {
+  return new PbaseError(`Template "${template}" not found.`);
 }

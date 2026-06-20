@@ -17,7 +17,7 @@ describe("scaffold", () => {
     const tmpDir = mkdtempSync(join(tmpdir(), "pbase-test-"));
     const outDir = join(tmpDir, "test-lib");
 
-    const result = await scaffold({
+    await scaffold({
       projectName: "test-lib",
       outDir,
       noInstall: true,
@@ -26,8 +26,6 @@ describe("scaffold", () => {
       template: "lib",
     });
 
-    expect(result.projectName).toBe("test-lib");
-    expect(result.filesCreated).toBeGreaterThan(0);
     expect(existsSync(join(outDir, "package.json"))).toBe(true);
     expect(existsSync(join(outDir, "src/index.ts"))).toBe(true);
     expect(existsSync(join(outDir, "tsconfig.json"))).toBe(true);
@@ -41,7 +39,7 @@ describe("scaffold", () => {
     const tmpDir = mkdtempSync(join(tmpdir(), "pbase-test-"));
     const outDir = join(tmpDir, "test-pkg");
 
-    const result = await scaffold({
+    await scaffold({
       projectName: "test-pkg",
       outDir,
       noInstall: true,
@@ -50,7 +48,6 @@ describe("scaffold", () => {
       template: "pkg",
     });
 
-    expect(result.projectName).toBe("test-pkg");
     expect(existsSync(join(outDir, "package.json"))).toBe(true);
     expect(existsSync(join(outDir, "src/index.ts"))).toBe(true);
     expect(existsSync(join(outDir, "tsconfig.json"))).toBe(true);
@@ -60,7 +57,7 @@ describe("scaffold", () => {
     expect(existsSync(join(outDir, "lefthook.yml"))).toBe(false);
   });
 
-  it("throws DirectoryExistsError when overwriting without --force", async () => {
+  it("throws when overwriting without --force", async () => {
     const tmpDir = mkdtempSync(join(tmpdir(), "pbase-test-"));
     const outDir = join(tmpDir, "existing");
 

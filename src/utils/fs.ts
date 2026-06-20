@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { TemplateNotFoundError } from "../errors";
+import { templateNotFoundError } from "../errors";
 import type { ScaffoldOptions } from "../types";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -24,7 +24,7 @@ export function resolveTemplateDir(template: string): string {
     if (existsSync(dir)) return dir;
   }
 
-  throw new TemplateNotFoundError(template);
+  throw templateNotFoundError(template);
 }
 
 const BINARY_EXTS = new Set([
@@ -64,14 +64,11 @@ export async function renderPlaceholders(dir: string, options: ScaffoldOptions):
       files.push(...(await renderPlaceholders(fullPath, options)));
     } else if (entry.isFile()) {
       if (BINARY_EXTS.has(extname(entry.name))) continue;
-      const content = await readFile(fullPath, "utf-8");
-      let updated = content;
+      let content = await readFile(fullPath, "utf-8");
       for (const [key, value] of Object.entries(replacements)) {
-        updated = updated.replaceAll(key, value);
+        content = content.replaceAll(key, value);
       }
-      if (updated !== content) {
-        await writeFile(fullPath, updated, "utf-8");
-      }
+      await writeFile(fullPath, content, "utf-8");
       files.push(fullPath);
     }
   }
