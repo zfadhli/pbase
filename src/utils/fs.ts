@@ -45,16 +45,36 @@ const BINARY_EXTS = new Set([
   ".br",
 ]);
 
-export async function renderPlaceholders(dir: string, options: ScaffoldOptions): Promise<string[]> {
-  const entries = await readdir(dir, { withFileTypes: true });
+export async function listTemplateFiles(templateDir: string): Promise<string[]> {
+  const entries = await readdir(templateDir, { withFileTypes: true });
   const files: string[] = [];
-  const year = new Date().getFullYear().toString();
-  const replacements: Record<string, string> = {
+
+  for (const entry of entries) {
+    const fullPath = join(templateDir, entry.name);
+    if (entry.isDirectory()) {
+      if (entry.name === "node_modules") continue;
+      const sub = await listTemplateFiles(fullPath);
+      files.push(...sub.map((f) => join(entry.name, f)));
+    } else if (entry.isFile() && !BINARY_EXTS.has(extname(entry.name))) {
+      files.push(entry.name);
+    }
+  }
+  return files.sort();
+}
+
+export function getPlaceholders(options: ScaffoldOptions): Record<string, string> {
+  return {
     __NAME__: options.projectName,
     __DESC__: options.description ?? "",
     __AUTHOR__: options.author ?? "",
-    __YEAR__: year,
+    __YEAR__: new Date().getFullYear().toString(),
   };
+}
+
+export async function renderPlaceholders(dir: string, options: ScaffoldOptions): Promise<string[]> {
+  const entries = await readdir(dir, { withFileTypes: true });
+  const files: string[] = [];
+  const replacements = getPlaceholders(options);
 
   for (const entry of entries) {
     const fullPath = join(dir, entry.name);

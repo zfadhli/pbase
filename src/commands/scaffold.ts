@@ -5,7 +5,12 @@ import { resolve } from "node:path";
 import { stderr } from "node:process";
 import { directoryExistsError } from "../errors";
 import type { ScaffoldOptions } from "../types";
-import { renderPlaceholders, resolveTemplateDir } from "../utils/fs";
+import {
+  getPlaceholders,
+  listTemplateFiles,
+  renderPlaceholders,
+  resolveTemplateDir,
+} from "../utils/fs";
 import { confirmOverwrite, promptProjectName, promptTemplate } from "../utils/prompts";
 
 function runProcess(cmd: string[], cwd: string): Promise<{ exitCode: number; stderr: string }> {
@@ -70,6 +75,26 @@ export async function scaffold(options: ScaffoldOptions): Promise<void> {
   }
 
   const outDir = options.outDir ?? resolve(process.cwd(), projectName);
+
+  if (options.dryRun) {
+    const templateDir = resolveTemplateDir(template);
+    const files = await listTemplateFiles(templateDir);
+    const placeholders = getPlaceholders(options);
+
+    console.log(`\n  Project:  ${projectName}`);
+    console.log(`  Template: ${template}`);
+    console.log(`  Output:   ${outDir}`);
+    console.log(`\n  Files to create (${files.length}):`);
+    for (const f of files) {
+      console.log(`    ${f}`);
+    }
+    console.log(`\n  Placeholders:`);
+    for (const [key, value] of Object.entries(placeholders)) {
+      console.log(`    ${key} → ${value || "(empty)"}`);
+    }
+    console.log(`\n  🟡 dry run — no files written\n`);
+    return;
+  }
 
   if (existsSync(outDir) && !options.force) {
     const ok = await confirmOverwrite(outDir);

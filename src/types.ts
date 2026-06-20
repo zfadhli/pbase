@@ -7,4 +7,5 @@ export interface ScaffoldOptions {
   noInstall?: boolean;
   noGit?: boolean;
   template?: string;
+  dryRun?: boolean;
 }

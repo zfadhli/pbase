@@ -14,6 +14,7 @@ cli
   .option("--force", "Overwrite existing directory")
   .option("--no-install", "Skip nub install")
   .option("--no-git", "Skip git init")
+  .option("--dry-run", "Preview what would be created without writing files")
   .action(async (name?: string, options?: Record<string, unknown>) => {
     try {
       await scaffold({
@@ -24,6 +25,7 @@ cli
         force: !!options?.force,
         noInstall: !!options?.["no-install"],
         noGit: !!options?.["no-git"],
+        dryRun: !!options?.dryRun,
       });
     } catch (err) {
       if (err instanceof PbaseError) {
