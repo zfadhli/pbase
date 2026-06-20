@@ -128,4 +128,36 @@ describe("scaffold", () => {
     expect(license).toContain(currentYear);
     expect(license).not.toContain("__YEAR__");
   });
+
+  it("scaffolds a project from the hono template", async () => {
+    const tmpDir = mkdtempSync(join(tmpdir(), "pbase-test-"));
+    const outDir = join(tmpDir, "test-hono");
+
+    await scaffold({
+      projectName: "test-hono",
+      outDir,
+      noInstall: true,
+      noGit: true,
+      force: true,
+      template: "hono",
+    });
+
+    expect(existsSync(join(outDir, "package.json"))).toBe(true);
+    expect(existsSync(join(outDir, "src/app.ts"))).toBe(true);
+    expect(existsSync(join(outDir, "src/index.ts"))).toBe(true);
+    expect(existsSync(join(outDir, "test/index.test.ts"))).toBe(true);
+    expect(existsSync(join(outDir, "tsconfig.json"))).toBe(true);
+    expect(existsSync(join(outDir, "template.json"))).toBe(false);
+
+    // Verify deep-merge: peta-stack deps from child, base deps + scripts from merge
+    const pkg = JSON.parse(readFileSync(join(outDir, "package.json"), "utf-8"));
+    expect(pkg.dependencies?.["peta-orm"]).toBe("^0");
+    expect(pkg.dependencies?.["peta-auth"]).toBe("^0");
+    expect(pkg.dependencies?.["peta-docs"]).toBe("^0");
+    expect(pkg.dependencies?.["peta-migrate"]).toBe("^0");
+    expect(pkg.dependencies?.hono).toBe("^4");
+    expect(pkg.devDependencies?.typescript).toBe("^6");
+    expect(pkg.scripts?.dev).toBe("nub watch src/index.ts");
+    expect(pkg.scripts?.typecheck).toBe("tsc --noEmit");
+  });
 });
