@@ -9,7 +9,6 @@ __DESC__
 | [Node](https://nodejs.org) | Runtime |
 | [TypeScript](https://www.typescriptlang.org) | Type system (strict, `isolatedDeclarations`) |
 | [Biome](https://biomejs.dev) | Linter + formatter |
-| [tsdown](https://tsdown.dev) | Library bundler (Rolldown-based, ESM + dts) |
 | [Lefthook](https://lefthook.dev) | Git hooks manager |
 
 ## Scripts

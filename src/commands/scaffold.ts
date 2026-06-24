@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { execSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { cp, readFile, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
@@ -8,8 +8,8 @@ import type { ScaffoldOptions } from "../types";
 import {
   readTemplateMeta,
   renderPlaceholders,
-  resolveInternalTemplateDir,
   resolveTemplateDir,
+  resolveTemplateDirPath,
 } from "../utils/fs";
 import { confirmOverwrite, promptProjectName, promptTemplate } from "../utils/prompts";
 
@@ -34,16 +34,14 @@ function deepMerge(
   return result;
 }
 
-function runProcess(cmd: string[], cwd: string): Promise<{ exitCode: number; stderr: string }> {
-  return new Promise((resolve, reject) => {
-    const proc = spawn(cmd[0], cmd.slice(1), { cwd, stdio: ["ignore", "pipe", "pipe"] });
-    const err: Buffer[] = [];
-    proc.stderr?.on("data", (d: Buffer) => err.push(d));
-    proc.on("close", (exitCode) =>
-      resolve({ exitCode: exitCode ?? 1, stderr: Buffer.concat(err).toString().trim() }),
-    );
-    proc.on("error", reject);
-  });
+function runOrDie(message: string, cmd: string[], cwd: string): void {
+  stderr.write(`  ${message}...\n`);
+  try {
+    execSync(cmd.join(" "), { cwd, stdio: "pipe" });
+  } catch (err) {
+    const output = ((err as { stderr?: string | Buffer }).stderr ?? "").toString().trim();
+    throw new Error(`${message} failed: ${output || (err as Error).message}`);
+  }
 }
 
 async function scaffoldTemplate(options: ScaffoldOptions, outDir: string): Promise<void> {
@@ -53,7 +51,7 @@ async function scaffoldTemplate(options: ScaffoldOptions, outDir: string): Promi
   let basePkg: Record<string, unknown> | undefined;
   const meta = await readTemplateMeta(templateDir);
   if (meta.extends) {
-    const parentDir = resolveInternalTemplateDir(meta.extends);
+    const parentDir = resolveTemplateDirPath(meta.extends);
     basePkg = await readPkg(parentDir);
     await cp(parentDir, outDir, { recursive: true, force: true });
   }
@@ -84,14 +82,6 @@ async function readPkg(dir: string): Promise<Record<string, unknown> | undefined
   }
 }
 
-async function runShell(message: string, cmd: string[], cwd: string): Promise<void> {
-  stderr.write(`  ${message}...\n`);
-  const { exitCode, stderr: output } = await runProcess(cmd, cwd);
-  if (exitCode !== 0) {
-    throw new Error(`${message} failed: ${output}`);
-  }
-}
-
 async function setupPackage(targetDir: string, meta: ScaffoldOptions): Promise<void> {
   const pkgPath = resolve(targetDir, "package.json");
   const pkg = JSON.parse(await readFile(pkgPath, "utf-8"));
@@ -100,14 +90,14 @@ async function setupPackage(targetDir: string, meta: ScaffoldOptions): Promise<v
   await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`, "utf-8");
 
   if (!meta.noInstall) {
-    await runShell("Installing dependencies", ["nub", "install"], targetDir);
+    runOrDie("Installing dependencies", ["nub", "install"], targetDir);
   }
 
   if (!meta.noGit) {
-    await runShell("Initializing git", ["git", "init", "-b", "main"], targetDir);
+    runOrDie("Initializing git", ["git", "init", "-b", "main"], targetDir);
     try {
-      await runProcess(["git", "add", "-A"], targetDir);
-      await runProcess(["git", "commit", "-m", "initial commit"], targetDir);
+      runOrDie("Staging files", ["git", "add", "-A"], targetDir);
+      runOrDie("Creating commit", ["git", "commit", "-m", "initial commit"], targetDir);
     } catch {
       // git commit may fail without user config — non-fatal
     }

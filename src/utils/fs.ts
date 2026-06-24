@@ -16,7 +16,7 @@ export const TEMPLATES: Record<string, string> = {
   hono: "Hono API (TypeScript + tsx + Biome + Lefthook)",
 };
 
-function resolveTemplateDirPath(name: string): string {
+export function resolveTemplateDirPath(name: string): string {
   // When bundled: dist/index.mjs → ../templates/<name>
   // When in source: src/utils/ → ../../templates/<name>
   const candidates = [
@@ -36,10 +36,6 @@ export function resolveTemplateDir(template: string): string {
   if (err) throw new PbaseError(`Invalid template name "${template}": ${err}`);
 
   return resolveTemplateDirPath(template);
-}
-
-export function resolveInternalTemplateDir(name: string): string {
-  return resolveTemplateDirPath(name);
 }
 
 export async function readTemplateMeta(templateDir: string): Promise<TemplateMeta> {
