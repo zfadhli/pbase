@@ -17,7 +17,7 @@ Follow the interactive prompts to pick a template and configure your project.
 pbase [project-name]
 
 Options:
-  --template <name>    Template to use (lib, pkg)
+  --template <name>    Template to use (lib, hono)
   --desc <desc>        Project description
   --author <author>    Author name (defaults from git config)
   --force              Overwrite existing directory
@@ -42,7 +42,7 @@ npx pbase my-lib --template lib --desc "My library" --no-install --no-git
 | Name | Description | Includes |
 |------|-------------|----------|
 | `lib` | TypeScript library | tsdown + Biome + Lefthook + CI + LICENSE |
-| `pkg` | Minimal package | TypeScript + vitest only |
+| `hono` | Hono API server | peta-orm + peta-auth + OpenAPI + Biome + Lefthook |
 
 ## Development
 

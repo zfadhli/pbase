@@ -13,7 +13,6 @@ export interface TemplateMeta {
 
 export const TEMPLATES: Record<string, string> = {
   lib: "TypeScript library (tsdown + Biome + Lefthook)",
-  pkg: "Minimal package (TypeScript + vitest)",
   hono: "Hono API (TypeScript + tsx + Biome + Lefthook)",
 };
 

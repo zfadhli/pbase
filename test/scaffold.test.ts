@@ -41,29 +41,6 @@ describe("scaffold", () => {
     expect(pkg.scripts?.dev).toBe("tsdown --watch");
   });
 
-  it("scaffolds a project from the pkg template", async () => {
-    const tmpDir = mkdtempSync(join(tmpdir(), "pbase-test-"));
-    const outDir = join(tmpDir, "test-pkg");
-
-    await scaffold({
-      projectName: "test-pkg",
-      outDir,
-      noInstall: true,
-      noGit: true,
-      force: true,
-      template: "pkg",
-    });
-
-    expect(existsSync(join(outDir, "package.json"))).toBe(true);
-    expect(existsSync(join(outDir, "src/index.ts"))).toBe(true);
-    expect(existsSync(join(outDir, "tsconfig.json"))).toBe(true);
-    expect(existsSync(join(outDir, "tsdown.config.ts"))).toBe(true);
-    expect(existsSync(join(outDir, "biome.json"))).toBe(true);
-    expect(existsSync(join(outDir, "lefthook.yml"))).toBe(true);
-    expect(existsSync(join(outDir, ".editorconfig"))).toBe(true);
-    expect(existsSync(join(outDir, "template.json"))).toBe(false);
-  });
-
   it("throws when overwriting without --force", async () => {
     const tmpDir = mkdtempSync(join(tmpdir(), "pbase-test-"));
     const outDir = join(tmpDir, "existing");

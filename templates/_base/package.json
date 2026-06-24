@@ -5,7 +5,6 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "tsdown",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
@@ -16,7 +15,6 @@
   "devDependencies": {
     "@biomejs/biome": "^2",
     "lefthook": "^2",
-    "tsdown": "^0.22",
     "typescript": "^6",
     "vitest": "^3"
   }

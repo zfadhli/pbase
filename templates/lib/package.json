@@ -6,6 +6,9 @@
       "types": "./dist/index.d.mts"
     }
   },
+  "devDependencies": {
+    "tsdown": "^0.22"
+  },
   "files": [
     "dist",
     "LICENSE",
@@ -13,6 +16,7 @@
     "CHANGELOG.md"
   ],
   "scripts": {
+    "build": "tsdown",
     "dev": "tsdown --watch",
     "test:watch": "vitest"
   }

@@ -11,6 +11,7 @@
     "peta-orm": "^0"
   },
   "scripts": {
+    "build": "tsc --noEmit",
     "dev": "nub watch src/index.ts"
   }
 }

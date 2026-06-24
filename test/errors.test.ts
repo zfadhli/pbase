@@ -30,7 +30,7 @@ describe("validateProjectName", () => {
 describe("validateTemplateName", () => {
   it("accepts valid template names", () => {
     expect(validateTemplateName("lib")).toBe(null);
-    expect(validateTemplateName("pkg")).toBe(null);
+    expect(validateTemplateName("hono")).toBe(null);
     expect(validateTemplateName("my-template")).toBe(null);
     expect(validateTemplateName("MyTemplate")).toBe(null);
   });
