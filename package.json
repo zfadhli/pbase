@@ -1,5 +1,5 @@
 {
-  "name": "pbase",
+  "name": "@zfadhli/pbase",
   "version": "0.1.0",
   "description": "Scaffold a minimal TypeScript library starter",
   "type": "module",
