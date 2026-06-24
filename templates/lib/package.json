@@ -1,4 +1,5 @@
 {
+  "private": false,
   "sideEffects": false,
   "exports": {
     ".": {
@@ -6,14 +7,20 @@
       "types": "./dist/index.d.mts"
     }
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/__AUTHOR__/__NAME__.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "tsdown": "^0.22"
   },
   "files": [
     "dist",
     "LICENSE",
-    "README.md",
-    "CHANGELOG.md"
+    "README.md"
   ],
   "scripts": {
     "build": "tsdown",
