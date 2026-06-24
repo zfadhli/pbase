@@ -3,18 +3,20 @@ node_modules/
 
 # Build output
 dist/
-
-# TypeScript
 *.tsbuildinfo
 
 # Environment
 .env
 .env.local
-.env.*.local
+
+# Tools
+.lefthook/
 
 # IDE
-.idea/
 .vscode/
+.idea/
+
+# Editor swap files
 *.swp
 *.swo
 
@@ -22,7 +24,8 @@ dist/
 .DS_Store
 Thumbs.db
 
-# Project-specific
-my-lib/
-tmp/
-.tmp/
+# Test output
+coverage/
+
+# Logs
+*.log

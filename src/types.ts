@@ -6,10 +6,6 @@ export interface ScaffoldOptions {
   force?: boolean;
   noInstall?: boolean;
   noGit?: boolean;
-}
-
-export interface ScaffoldResult {
-  outDir: string;
-  projectName: string;
-  filesCreated: number;
+  template?: string;
+  dryRun?: boolean;
 }

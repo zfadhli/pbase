@@ -1,0 +1,21 @@
+{
+  "name": "__NAME__",
+  "version": "0.0.0",
+  "description": "__DESC__",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "test": "vitest run",
+    "prepare": "lefthook install"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2",
+    "lefthook": "^2",
+    "typescript": "^6",
+    "vitest": "^3"
+  }
+}

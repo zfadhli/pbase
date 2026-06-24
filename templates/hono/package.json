@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "@hono/node-server": "^1",
+    "@libsql/client": "^0",
+    "@libsql/kysely-libsql": "^0",
+    "hono": "^4",
+    "kysely": "^0",
+    "peta-auth": "^0",
+    "peta-docs": "^0",
+    "peta-migrate": "^0",
+    "peta-orm": "^0"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "dev": "nub watch src/index.ts"
+  }
+}
