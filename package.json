@@ -35,6 +35,10 @@
     "templates"
   ],
   "packageManager": "nub@0.1.5",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zfadhli/pbase"
+  },
   "devEngines": {
     "packageManager": {
       "name": "nub",
