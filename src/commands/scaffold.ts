@@ -87,14 +87,23 @@ async function setupPackage(targetDir: string, meta: ScaffoldOptions): Promise<v
   const pkg = JSON.parse(await readFile(pkgPath, "utf-8"));
   pkg.name = meta.projectName;
   if (meta.description) pkg.description = meta.description;
+
+  // ponytail: --no-git means no .git dir, so lefthook install (prepare) would fail
+  if (meta.noGit && pkg.scripts?.prepare) {
+    delete pkg.scripts.prepare;
+  }
+
   await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`, "utf-8");
+
+  if (!meta.noGit) {
+    runOrDie("Initializing git", ["git", "init", "-b", "main"], targetDir);
+  }
 
   if (!meta.noInstall) {
     runOrDie("Installing dependencies", ["nub", "install"], targetDir);
   }
 
   if (!meta.noGit) {
-    runOrDie("Initializing git", ["git", "init", "-b", "main"], targetDir);
     try {
       runOrDie("Staging files", ["git", "add", "-A"], targetDir);
       runOrDie("Creating commit", ["git", "commit", "-m", "initial commit"], targetDir);
